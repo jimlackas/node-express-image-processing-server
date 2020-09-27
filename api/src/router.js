@@ -1,6 +1,7 @@
 /* eslint-disable require-jsdoc */
 const {Router} = require('express');
 const multer = require('multer');
+const path = require('path');
 
 const router = Router();
 
@@ -8,6 +9,13 @@ const storage = multer.diskStorage({
   'destination': 'api/uploads/',
   'filename': filename,
 });
+
+const upload = multer({
+  'fileFilter': fileFilter,
+  'storage': storage,
+});
+
+const photoPath = path.resolve(__dirname, '../../client/photo-viewer.html');
 
 function filename(request, file, callback) {
   callback(null, file.originalname);
@@ -22,11 +30,6 @@ function fileFilter(request, file, callback) {
   }
 }
 
-const upload = multer({
-  'fileFilter': fileFilter,
-  'storage': storage,
-});
-
 router.post('/upload', upload.single('photo'), (request, response) => {
   if (request.hasOwnProperty('fileValidationError')) {
     return response.status(400).json({
@@ -36,6 +39,10 @@ router.post('/upload', upload.single('photo'), (request, response) => {
   return response.status(201).json({
     'success': true,
   });
+});
+
+router.get('/photo-viewer', (request, response) => {
+  response.sendFile(photoPath);
 });
 
 module.exports = router;
